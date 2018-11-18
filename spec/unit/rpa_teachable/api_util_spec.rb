@@ -16,6 +16,9 @@ describe RPATeachable::APIUtil do
     let(:fetch_response) do
       [double('fetch_response', code: 200, body: fetch_body)]
     end
+    let(:auth_response) do
+      [double('response', code: 200, body: auth_body)]
+    end
 
     before do
       RPATeachable.user_name = nil
@@ -23,24 +26,6 @@ describe RPATeachable::APIUtil do
       RPATeachable::APIUtil.auth_token = nil
       allow(HTTParty).to receive(:get).and_return(*fetch_response)
       allow(HTTParty).to receive(:post).and_return(*auth_response)
-    end
-
-    context 'returns code 422' do
-      let(:fetch_response) { [double('fetch_response', code: 422)] }
-      it 'raises UnprocessableError' do
-        expect { described_class.get(fetch_url) }.to raise_error(
-          UnprocessableError
-        )
-      end
-    end
-
-    context 'returns code 500' do
-      let(:fetch_response) { [double('fetch_response', code: 500)] }
-      it 'raises ContactProviderError' do
-        expect { described_class.get(fetch_url) }.to raise_error(
-          ContactProviderError
-        )
-      end
     end
 
     context 'with credentials' do
@@ -51,8 +36,24 @@ describe RPATeachable::APIUtil do
         RPATeachable.password = password
       end
 
-      let(:auth_response) do
-        [double('response', code: 200, body: auth_body)]
+      context 'returns code 422' do
+        let(:fetch_response) { [double('fetch_response', code: 422, body: '')] }
+        it 'raises UnprocessableError' do
+          expect { described_class.get(fetch_url) }.to raise_error(
+            RPATeachable::UnprocessableError
+          )
+        end
+      end
+
+      context 'returns code 500' do
+        let(:fetch_response) do
+          [double('fetch_response', code: 500, body: '', request: {})]
+        end
+        it 'raises ApiServerError' do
+          expect { described_class.get(fetch_url) }.to raise_error(
+            RPATeachable::ApiServerError
+          )
+        end
       end
 
       context 'auth token not present' do
@@ -65,6 +66,11 @@ describe RPATeachable::APIUtil do
             )
           )
         end
+      end
+
+      it 'returns the response body with symbolized keys' do
+        response = described_class.get(fetch_url)
+        expect(response[:some]).to eq('body')
       end
 
       context 'auth token present and not expired' do

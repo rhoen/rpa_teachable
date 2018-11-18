@@ -16,7 +16,7 @@ module RPATeachable
         return true unless src.nil?
         list.save if list.src.nil?
         response = APIUtil.post(
-          list.src + '/items',
+          list.src + CREATE_ENDPOINT,
           body: {
             name: name
           }

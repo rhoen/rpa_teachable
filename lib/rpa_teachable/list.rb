@@ -18,6 +18,12 @@ module RPATeachable
       self.id = id
     end
 
+    def add_item(name:)
+      item = Item.new(name: name, list: self)
+      item.save
+      item
+    end
+
     def items
       response = APIUtil.get(src)
       response[:items].map do |item|

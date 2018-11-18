@@ -2,20 +2,20 @@ require 'httparty'
 
 module RPATeachable
   module APIUtil
-    BASE_URL = 'http://todoable.teachable.tech/api/authenticate'
-    AUTH_ENDPOINT = '/api/authenticate'
+    BASE_URL = 'http://todoable.teachable.tech/api'
+    AUTH_ENDPOINT = '/authenticate'
 
     class << self
       attr_accessor :auth_token
 
       def get(url)
         response = httparty_method(:get, url)
-        JSON.parse(response.body, symbolize_name: true)
+        JSON.parse(response.body, symbolize_names: true)
       end
 
       def post(url, body)
-        response = httparty_method(:post, url, body: body)
-        JSON.parse(response.body, symbolize_name: true)
+        response = httparty_method(:post, url, body: body.to_json)
+        JSON.parse(response.body, symbolize_names: true)
       end
 
       def delete(url)
@@ -25,18 +25,18 @@ module RPATeachable
 
       def put(url)
         response = httparty_method(:put, url)
-        JSON.parse(response.body, symbolize_name: true)
+        JSON.parse(response.body, symbolize_names: true)
       end
 
       def patch(url, body)
-        response = httparty_method(:patch, url, body: body)
-        JSON.parse(response.body, symbolize_name: true)
+        response = httparty_method(:patch, url, body: body.to_json)
+        JSON.parse(response.body, symbolize_names: true)
       end
 
       private
 
       def httparty_method(method, url, opts = {})
-        with_reauthenticate_retry do
+        response = with_reauthenticate_retry do
           httparty_options = api_request_headers.merge(opts)
           HTTParty.send(
             method,
@@ -44,6 +44,9 @@ module RPATeachable
             httparty_options
           )
         end
+
+        handle_errors(response)
+        response
       end
 
       def api_request_headers
@@ -96,7 +99,12 @@ module RPATeachable
       def handle_errors(response)
         raise AuthenticationError if response.code == 401
         raise UnprocessableError.new(response.body) if response.code == 422
-        raise ContactProviderError.new(response.body) if response.code == 500
+        if response.code == 500
+          raise ApiServerError.new(
+            response: response.body,
+            request: response.request.inspect
+          )
+        end
       end
     end
   end

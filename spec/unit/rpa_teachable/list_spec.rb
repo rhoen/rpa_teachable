@@ -89,6 +89,21 @@ describe RPATeachable::List do
     end
   end
 
+  describe '#add_item' do
+    before do
+      allow(RPATeachable::List::Item).to receive(:new).and_call_original
+    end
+    
+    it 'instantiates an item and calls save' do
+      name = 'item'
+      subject.add_item(name: name)
+      expect(RPATeachable::List::Item).to have_received(:new).with(
+        list: subject,
+        name: name
+      )
+    end
+  end
+
   describe '#save' do
     context 'src is not set' do
       it 'uses the APIUtil to post' do
