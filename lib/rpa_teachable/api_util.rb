@@ -52,7 +52,7 @@ module RPATeachable
 
       def with_reauthenticate_retry(&blk)
         response = blk.call
-        if response.status == 401
+        if response.code == 401
           refresh_auth_token
           response = blk.call
         end
@@ -94,9 +94,9 @@ module RPATeachable
       end
 
       def handle_errors(response)
-        raise AuthenticationError if response.status == 401
-        raise UnprocessableError.new(response.body) if response.status == 422
-        raise ContactProviderError.new(response.body) if response.status == 500
+        raise AuthenticationError if response.code == 401
+        raise UnprocessableError.new(response.body) if response.code == 422
+        raise ContactProviderError.new(response.body) if response.code == 500
       end
     end
   end

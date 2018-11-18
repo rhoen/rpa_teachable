@@ -14,7 +14,7 @@ describe RPATeachable::APIUtil do
     end
     let(:fetch_body) { { some: :body }.to_json }
     let(:fetch_response) do
-      [double('fetch_response', status: 200, body: fetch_body)]
+      [double('fetch_response', code: 200, body: fetch_body)]
     end
 
     before do
@@ -25,8 +25,8 @@ describe RPATeachable::APIUtil do
       allow(HTTParty).to receive(:post).and_return(*auth_response)
     end
 
-    context 'returns status 422' do
-      let(:fetch_response) { [double('fetch_response', status: 422)] }
+    context 'returns code 422' do
+      let(:fetch_response) { [double('fetch_response', code: 422)] }
       it 'raises UnprocessableError' do
         expect { described_class.get(fetch_url) }.to raise_error(
           UnprocessableError
@@ -34,8 +34,8 @@ describe RPATeachable::APIUtil do
       end
     end
 
-    context 'returns status 500' do
-      let(:fetch_response) { [double('fetch_response', status: 500)] }
+    context 'returns code 500' do
+      let(:fetch_response) { [double('fetch_response', code: 500)] }
       it 'raises ContactProviderError' do
         expect { described_class.get(fetch_url) }.to raise_error(
           ContactProviderError
@@ -52,7 +52,7 @@ describe RPATeachable::APIUtil do
       end
 
       let(:auth_response) do
-        [double('response', status: 200, body: auth_body)]
+        [double('response', code: 200, body: auth_body)]
       end
 
       context 'auth token not present' do
@@ -90,8 +90,8 @@ describe RPATeachable::APIUtil do
         let(:new_auth_body) { { token: new_token }.to_json }
         let(:fetch_response) do
           [
-            double('unauthorized', status: 401),
-            double('authorized', status: 200, body: fetch_body)
+            double('unauthorized', code: 401),
+            double('authorized', code: 200, body: fetch_body)
           ]
         end
         let(:auth_body) do
@@ -117,7 +117,7 @@ describe RPATeachable::APIUtil do
 
       context 'credentials rejected' do
         let(:auth_response) do
-          [double('unauthorized', status: 401)]
+          [double('unauthorized', code: 401)]
         end
 
         it 'raises error' do
@@ -130,7 +130,7 @@ describe RPATeachable::APIUtil do
 
     context 'without credentials' do
       let(:auth_response) do
-        [double('unauthorized', status: 401)]
+        [double('unauthorized', code: 401)]
       end
 
       it 'raises error' do
