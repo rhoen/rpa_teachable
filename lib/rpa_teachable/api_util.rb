@@ -2,7 +2,7 @@ require 'httparty'
 
 module RPATeachable
   module APIUtil
-    BASE_URL = 'base_url' #http://todoable.teachable.tech/api/authenticate
+    BASE_URL = 'http://todoable.teachable.tech/api/authenticate'
     AUTH_ENDPOINT = '/api/authenticate'
 
     class << self
