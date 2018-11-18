@@ -7,3 +7,4 @@ end
 require 'rpa_teachable/list'
 require 'rpa_teachable/api_util'
 require 'rpa_teachable/errors/authentication_error'
+require 'rpa_teachable/errors/credentials_not_set_error'

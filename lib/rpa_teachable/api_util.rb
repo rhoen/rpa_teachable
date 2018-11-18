@@ -8,10 +8,56 @@ module RPATeachable
     class << self
       attr_accessor :auth_token
 
-      def post(endpoint, body)
+      def get(url)
+        response = with_reauthenticate_retry do
+          HTTParty.get(
+            url,
+            headers: json_headers.merge(auth_header)
+          )
+        end
+
+        JSON.parse(response.body)
+      end
+
+      def post(url, body)
         response = with_reauthenticate_retry do
           HTTParty.post(
-            BASE_URL + endpoint,
+            url,
+            headers: json_headers.merge(auth_header),
+            body: body
+          )
+        end
+
+        JSON.parse(response.body, symbolize_name: true)
+      end
+
+      def delete(url)
+        response = with_reauthenticate_retry do
+          HTTParty.delete(
+            url,
+            headers: json_headers.merge(auth_header)
+          )
+        end
+
+        true
+      end
+
+      def put(url)
+        response = with_reauthenticate_retry do
+          HTTParty.put(
+            url,
+            headers: json_headers.merge(auth_header),
+            body: body
+          )
+        end
+
+        JSON.parse(response.body)
+      end
+
+      def patch(url, body)
+        response = with_reauthenticate_retry do
+          HTTParty.patch(
+            url,
             headers: json_headers.merge(auth_header),
             body: body
           )
@@ -21,6 +67,19 @@ module RPATeachable
       end
 
       private
+
+      # def httparty_method(method, endpoint, opts)
+      #   httparty_options = headers: json_headers.merge(auth_header).merge(opts)
+      #   response = with_reauthenticate_retry do
+      #     HTTParty.send(
+      #       method,
+      #       BASE_URL + endpoint,
+      #       httparty_options
+      #     )
+      #   end
+      #
+      #   JSON.parse(response.body)
+      # end
 
       def with_reauthenticate_retry(&blk)
         response = blk.call
@@ -49,6 +108,9 @@ module RPATeachable
       end
 
       def refresh_auth_token
+        if RPATeachable.user_name.nil? || RPATeachable.password.nil?
+          raise CredentialsNotSetError
+        end
         response = HTTParty.post(BASE_URL + AUTH_ENDPOINT,
           headers: json_headers,
           basic_auth: {
@@ -56,10 +118,10 @@ module RPATeachable
             password: RPATeachable.password
           }
         )
-        byebug
+
         raise AuthenticationError if response.status == 401
 
-        self.auth_token = response
+        self.auth_token = JSON.parse(response.body)['token']
       end
     end
   end
