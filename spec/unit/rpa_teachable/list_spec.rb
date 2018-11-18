@@ -2,7 +2,6 @@ describe RPATeachable::List do
   let(:name) { 'my list' }
   let(:src) { 'some_link' }
   let(:id) { 'somd_id' }
-
   let(:item_name) { 'item name' }
   let(:item_src) { 'item src' }
   subject { RPATeachable::List.new(name: name) }
@@ -53,6 +52,7 @@ describe RPATeachable::List do
         RPATeachable::APIUtil::BASE_URL + RPATeachable::List::ENDPOINT
       )
     end
+
     it 'returns an array of lists' do
       expect(described_class.all).to be_a(Array)
       expect(described_class.all[0]).to be_a(RPATeachable::List)
@@ -65,6 +65,7 @@ describe RPATeachable::List do
       subject.items
       expect(RPATeachable::APIUtil).to have_received(:get).with(src)
     end
+
     it 'returns an array of Items' do
       expect(subject.items).to be_a(Array)
       expect(subject.items[0]).to be_a(RPATeachable::List::Item)
@@ -102,6 +103,7 @@ describe RPATeachable::List do
         subject.save
         expect(subject.src).to eq(src)
       end
+
       it 'sets the id' do
         subject.save
         expect(subject.id).to eq(id)
@@ -110,7 +112,6 @@ describe RPATeachable::List do
 
     context 'src is set' do
       subject { RPATeachable::List.new(name: name, src: src) }
-
       it 'users APIUtil to patch' do
         subject.save
         expect(RPATeachable::APIUtil).to have_received(:patch).with(

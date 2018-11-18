@@ -25,6 +25,24 @@ describe RPATeachable::APIUtil do
       allow(HTTParty).to receive(:post).and_return(*auth_response)
     end
 
+    context 'returns status 422' do
+      let(:fetch_response) { [double('fetch_response', status: 422)] }
+      it 'raises UnprocessableError' do
+        expect { described_class.get(fetch_url) }.to raise_error(
+          UnprocessableError
+        )
+      end
+    end
+
+    context 'returns status 500' do
+      let(:fetch_response) { [double('fetch_response', status: 500)] }
+      it 'raises ContactProviderError' do
+        expect { described_class.get(fetch_url) }.to raise_error(
+          ContactProviderError
+        )
+      end
+    end
+
     context 'with credentials' do
       let(:user_name) { 'user_name' }
       let(:password) { 'password' }
@@ -60,7 +78,7 @@ describe RPATeachable::APIUtil do
             fetch_url,
             hash_including(
               headers: hash_including(
-                { Authorization: "Token #{auth_token}" }
+                { Authorization: "Token token=#{auth_token}" }
               )
             )
           )
@@ -92,7 +110,7 @@ describe RPATeachable::APIUtil do
           described_class.get(fetch_url)
           expect(HTTParty).to have_received(:get).with(
             fetch_url,
-            headers: hash_including({Authorization: "Token #{new_token}"})
+            headers: hash_including({Authorization: "Token token=#{new_token}"})
           )
         end
       end

@@ -76,6 +76,7 @@ describe RPATeachable::List::Item do
         end
       end
     end
+
     context 'src present' do
       subject { RPATeachable::List::Item.new(name: name, list: list, src: src) }
       it 'returns true' do
@@ -87,6 +88,7 @@ describe RPATeachable::List::Item do
         expect(RPATeachable::APIUtil).not_to have_received(:post)
       end
     end
+    
     context 'list src not present' do
       let(:list) { double('list', name: 'my list') }
       before { allow(list).to receive(:src).and_return(nil, list_src) }

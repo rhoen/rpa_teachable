@@ -9,77 +9,46 @@ module RPATeachable
       attr_accessor :auth_token
 
       def get(url)
-        response = with_reauthenticate_retry do
-          HTTParty.get(
-            url,
-            headers: json_headers.merge(auth_header)
-          )
-        end
-
-        JSON.parse(response.body)
+        response = httparty_method(:get, url)
+        JSON.parse(response.body, symbolize_name: true)
       end
 
       def post(url, body)
-        response = with_reauthenticate_retry do
-          HTTParty.post(
-            url,
-            headers: json_headers.merge(auth_header),
-            body: body
-          )
-        end
-
+        response = httparty_method(:post, url, body: body)
         JSON.parse(response.body, symbolize_name: true)
       end
 
       def delete(url)
-        response = with_reauthenticate_retry do
-          HTTParty.delete(
-            url,
-            headers: json_headers.merge(auth_header)
-          )
-        end
-
+        httparty_method(:delete, url)
         true
       end
 
       def put(url)
-        response = with_reauthenticate_retry do
-          HTTParty.put(
-            url,
-            headers: json_headers.merge(auth_header),
-            body: body
-          )
-        end
-
-        JSON.parse(response.body)
+        response = httparty_method(:put, url)
+        JSON.parse(response.body, symbolize_name: true)
       end
 
       def patch(url, body)
-        response = with_reauthenticate_retry do
-          HTTParty.patch(
-            url,
-            headers: json_headers.merge(auth_header),
-            body: body
-          )
-        end
-
-        JSON.parse(response.body)
+        response = httparty_method(:patch, url, body: body)
+        JSON.parse(response.body, symbolize_name: true)
       end
 
       private
 
-      # def httparty_method(method, endpoint, opts)
-      #   httparty_options = headers: json_headers.merge(auth_header).merge(opts)
-      #   response = with_reauthenticate_retry do
-      #     HTTParty.send(
-      #       method,
-      #       BASE_URL + endpoint,
-      #       httparty_options
-      #     )
-      #   end
-      #
-      #   JSON.parse(response.body)
-      # end
+      def httparty_method(method, url, opts = {})
+        with_reauthenticate_retry do
+          httparty_options = api_request_headers.merge(opts)
+          HTTParty.send(
+            method,
+            url,
+            httparty_options
+          )
+        end
+      end
+
+      def api_request_headers
+        { headers: json_headers.merge(auth_header) }
+      end
 
       def with_reauthenticate_retry(&blk)
         response = blk.call
@@ -100,7 +69,7 @@ module RPATeachable
 
       def auth_header
         ensure_auth_token_present
-        { Authorization: "Token #{auth_token}" }
+        { Authorization: "Token token=#{auth_token}" }
       end
 
       def ensure_auth_token_present
@@ -119,9 +88,15 @@ module RPATeachable
           }
         )
 
-        raise AuthenticationError if response.status == 401
+        handle_errors(response)
 
         self.auth_token = JSON.parse(response.body)['token']
+      end
+
+      def handle_errors(response)
+        raise AuthenticationError if response.status == 401
+        raise UnprocessableError.new(response.body) if response.status == 422
+        raise ContactProviderError.new(response.body) if response.status == 500
       end
     end
   end
