@@ -15,7 +15,7 @@ describe RPATeachable::List::Item do
     }
   end
   let(:put_response_body) do
-    post_response_body.merge(finished_at: 'some time string')
+    post_response_body.merge(finished_at: '2018-11-18T23:47:24.934Z')
   end
   before do
     allow(RPATeachable::APIUtil).to receive(:post).and_return(post_response_body)
@@ -33,6 +33,11 @@ describe RPATeachable::List::Item do
       subject.finish
       expect(RPATeachable::APIUtil).to have_received(:put)
         .with(src + RPATeachable::List::Item::FINISH_ENDPOINT)
+    end
+
+    it 'assigns the finished_at' do
+      subject.finish
+      expect(subject.finished_at).to be_a(Time)
     end
   end
 
@@ -60,7 +65,7 @@ describe RPATeachable::List::Item do
       it 'uses APIUtil to post' do
         expect(RPATeachable::APIUtil).to have_received(:post).with(
           list.src + RPATeachable::List::Item::CREATE_ENDPOINT,
-          body: { name: name }
+          body: { item: { name: name } }
         )
       end
 
@@ -88,7 +93,7 @@ describe RPATeachable::List::Item do
         expect(RPATeachable::APIUtil).not_to have_received(:post)
       end
     end
-    
+
     context 'list src not present' do
       let(:list) { double('list', name: 'my list') }
       before { allow(list).to receive(:src).and_return(nil, list_src) }

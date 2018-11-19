@@ -13,5 +13,13 @@ describe RPATeachable do
     expect(still_present).to be false
   end
 
+  it 'creates and finishes an item' do
+    name = 'New List' + Time.now.to_s
+    list = RPATeachable::List.new(name: name)
+    list.save
+    item = list.add_item(name: 'my item' + Time.now.to_s)
+    expect(item).to be_a(RPATeachable::List::Item)
+    item.finish
+    expect(item.finished_at).to be_a(Time)
   end
 end
