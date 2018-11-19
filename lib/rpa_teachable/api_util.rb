@@ -25,7 +25,7 @@ module RPATeachable
 
       def put(url)
         response = httparty_method(:put, url)
-        JSON.parse(response.body, symbolize_names: true)
+        true
       end
 
       def patch(url, body)

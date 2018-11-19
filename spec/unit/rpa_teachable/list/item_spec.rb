@@ -4,7 +4,7 @@ describe RPATeachable::List::Item do
   let(:list_src) { 'some_list_link' }
   let(:id) { 'somd_id' }
   let(:list) { double('list', name: 'my list', src: list_src) }
-
+  let(:finished_at) { '2018-11-19T00:18:04.333Z' }
   subject { RPATeachable::List::Item.new(name: name, list: list) }
   let(:post_response_body) do
     {
@@ -15,7 +15,7 @@ describe RPATeachable::List::Item do
     }
   end
   let(:put_response_body) do
-    post_response_body.merge(finished_at: '2018-11-18T23:47:24.934Z')
+    "Unexpected 's'"
   end
   before do
     allow(RPATeachable::APIUtil).to receive(:post).and_return(post_response_body)
@@ -28,16 +28,26 @@ describe RPATeachable::List::Item do
     expect(subject.list).to eq(list)
   end
 
+  it 'can be instantiated with a finished_at string' do
+    item = described_class.new(name: name, list: list, finished_at: finished_at)
+    expect(item.finished_at).to be_a(Time)
+  end
+
   describe '#finish' do
+    let(:finish_time) { Time.now }
+    before do
+      item = double('item', id: id, finished_at: finish_time )
+      allow(list).to receive(:items) { [item] }
+    end
     it 'uses APIUtil to put' do
       subject.finish
       expect(RPATeachable::APIUtil).to have_received(:put)
         .with(src + RPATeachable::List::Item::FINISH_ENDPOINT)
     end
 
-    it 'assigns the finished_at' do
+    it 'assigns the finished_at from the item in the list' do
       subject.finish
-      expect(subject.finished_at).to be_a(Time)
+      expect(subject.finished_at).to eq(finish_time)
     end
   end
 

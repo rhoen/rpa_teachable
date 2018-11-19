@@ -21,5 +21,6 @@ describe RPATeachable do
     expect(item).to be_a(RPATeachable::List::Item)
     item.finish
     expect(item.finished_at).to be_a(Time)
+    list.delete
   end
 end

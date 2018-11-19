@@ -10,7 +10,7 @@ module RPATeachable
         self.name = name
         self.src = src
         self.id = id
-        self.finished_at = finished_at
+        self.finished_at = parse_time(finished_at)
       end
 
       def save
@@ -30,9 +30,8 @@ module RPATeachable
 
       def finish
         save if src.nil?
-        response = APIUtil.put(src + FINISH_ENDPOINT)
-        time_string = response[:finished_at]
-        self.finished_at = Time.strptime(time_string, '%Y-%m-%dT%T.%LZ')
+        APIUtil.put(src + FINISH_ENDPOINT)
+        assign_finished_at
         true
       end
 
@@ -42,6 +41,15 @@ module RPATeachable
       end
 
       private
+
+      def assign_finished_at
+        self.finished_at = list.items.select { |l| l.id == id }[0].finished_at
+      end
+
+      def parse_time(time)
+        return nil if time.nil?
+        Time.strptime(time, '%Y-%m-%dT%T.%LZ')
+      end
 
       attr_writer :list, :name, :finished_at, :src, :id
     end
