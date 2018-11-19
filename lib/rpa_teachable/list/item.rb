@@ -16,14 +16,12 @@ module RPATeachable
       def save
         return true unless src.nil?
         list.save if list.src.nil?
-        response = APIUtil.post(
-          list.src + CREATE_ENDPOINT,
-          body: {
-            item: {
-              name: name
-            }
+        body = {
+          item: {
+            name: name
           }
-        )
+        }
+        response = APIUtil.post(list.src + CREATE_ENDPOINT, body)
 
         self.src = response[:src]
         self.id = response[:id]

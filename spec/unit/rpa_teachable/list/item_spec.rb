@@ -65,7 +65,7 @@ describe RPATeachable::List::Item do
       it 'uses APIUtil to post' do
         expect(RPATeachable::APIUtil).to have_received(:post).with(
           list.src + RPATeachable::List::Item::CREATE_ENDPOINT,
-          body: { item: { name: name } }
+          { item: { name: name } }
         )
       end
 
